@@ -1,0 +1,11 @@
+ORDINE PER ESEGUIRE CORRETTAMENTE IL BME280
+
+1) parti attaccando il BME280 al PC
+2) apri la powershell come amministratore di sistema
+3) con il comando "usbipd list" vedi i dispositivi connessi, 
+    l'arduino in dotazione dovrebbe rimanere sempre il 1-1
+4) apri poi un terminale WSL
+5) esegui "usbipd attach --wsl --busid 1-1" per rimappare le porta
+6) passa a WSL e esegui bme280_logger.py che raccoglie i dati in ingresso dalla USB 
+    e li salva dinamicamente in un .csv
+7) esegui grafico_dinamico.py 
