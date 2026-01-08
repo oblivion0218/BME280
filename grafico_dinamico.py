@@ -6,8 +6,8 @@ import os
 
 # --- Configurazione ---
 NOME_FILE_LOG = 'dati_bme_live.csv'
-INTERVALLO_AGGIORNAMENTO_MS = 3000
-STEP_TEMPORALE_S = 3.0  # Tempo fisso tra una riga e l'altra
+INTERVALLO_AGGIORNAMENTO_MS = 1000
+STEP_TEMPORALE_S = 1.0  # Tempo fisso tra una riga e l'altra
 # ---------------------
 
 fig, ax1 = plt.subplots(figsize=(10, 6))
@@ -40,7 +40,7 @@ def leggi_e_aggiorna(i):
         df['Tempo_Simulato_s'] = np.arange(len(df)) * STEP_TEMPORALE_S
         
         # Scaling pressione
-        df['Pressione_Scalata'] = df['Pressione'] / 2.0
+        df['Pressione_Scalata'] = df['Pressione'] / 1.0
 
         ax1.clear() 
 
@@ -50,7 +50,7 @@ def leggi_e_aggiorna(i):
         ax1.plot(df['Tempo_Simulato_s'], df['Umidita'], 
                  label='Umidità (%)', color='mediumpurple', linewidth=2.5)
         ax1.plot(df['Tempo_Simulato_s'], df['Pressione_Scalata'], 
-                 label='Pressione (kPa) / 2', color='mediumseagreen', linewidth=2.5)
+                 label='Pressione (kPa)', color='mediumseagreen', linewidth=2.5)
 
         # Gestione Assi
         if not df.empty:
@@ -63,7 +63,7 @@ def leggi_e_aggiorna(i):
             ax1.set_ylim(bottom=y_min - 5, top=y_max + 5)
 
         # Estetica
-        ax1.set_xlabel('Tempo (s) - [Step fisso 3s]')
+        ax1.set_xlabel('Tempo (s) - [Step fisso 1s]')
         ax1.set_ylabel('Grandezze Fisiche')
         ax1.set_title('Monitoraggio BME280 (Asse temporale sintetico)')
         ax1.grid(True, linestyle='--', alpha=0.5)
