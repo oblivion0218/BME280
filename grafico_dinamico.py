@@ -7,10 +7,12 @@ import os
 # --- Configurazione ---
 NOME_FILE_LOG = 'dati_bme_live.csv'
 INTERVALLO_AGGIORNAMENTO_MS = 1000
-STEP_TEMPORALE_S = 1.0  # Tempo fisso tra una riga e l'altra
+STEP_TEMPORALE_S = 1.0 
 # ---------------------
 
+# Setup della figura con dimensioni memorizzate
 fig, ax1 = plt.subplots(figsize=(10, 6))
+ax2 = ax1.twinx()  # Istanzio l'asse gemello una volta sola
 
 def leggi_e_aggiorna(i):
     if not os.path.exists(NOME_FILE_LOG):
@@ -23,55 +25,90 @@ def leggi_e_aggiorna(i):
         if df.empty or df.shape[1] < 4:
             return
 
-        # Assegniamo i nomi per comodità di estrazione, anche se il Timestamp reale viene ignorato
         df.columns = ['Timestamp_Raw', 'Temp_K', 'Hum_Pct', 'Pres_kPa']
 
         # Pulizia dati ed estrazione numerica
-        df['Temperatura'] = df['Temp_K'].astype(str).str.extract(r'(\d+\.\d+)').astype(float) - 273.15
-        df['Umidita'] = df['Hum_Pct'].astype(str).str.extract(r'(\d+\.\d+)').astype(float)
-        df['Pressione'] = df['Pres_kPa'].astype(str).str.extract(r'(\d+\.\d+)').astype(float)
+        regex_num = r'(\d+\.\d+)'
+        df['Temperatura'] = df['Temp_K'].astype(str).str.extract(regex_num).astype(float) - 273.15
+        df['Umidita'] = df['Hum_Pct'].astype(str).str.extract(regex_num).astype(float)
+        df['Pressione'] = df['Pres_kPa'].astype(str).str.extract(regex_num).astype(float)
         
-        # Rimuoviamo righe con valori NaN (parsing fallito)
         df.dropna(subset=['Temperatura', 'Umidita', 'Pressione'], inplace=True)
         
-        # --- MODIFICA CORE ---
-        # Invece di leggere il tempo, generiamo una sequenza: 0, 3, 6, 9...
-        # basata sul numero di righe valide lette.
+        # Asse temporale sintetico
         df['Tempo_Simulato_s'] = np.arange(len(df)) * STEP_TEMPORALE_S
         
-        # Scaling pressione
-        df['Pressione_Scalata'] = df['Pressione'] / 1.0
+        # --- PLOTTING ---
+        # Puliamo entrambi gli assi per il redraw
+        ax1.clear()
+        ax2.clear()
 
-        ax1.clear() 
-
-        # Plotting usando il Tempo Simulato sull'asse X
+        # Plot Temperatura su ASSE SINISTRO (ax1)
+        # Uso 'skyblue' come da tuo script precedente, mantenendo lo stile
         ax1.plot(df['Tempo_Simulato_s'], df['Temperatura'], 
                  label='Temperatura (°C)', color='skyblue', linewidth=2.5)
-        ax1.plot(df['Tempo_Simulato_s'], df['Umidita'], 
-                 label='Umidità (%)', color='mediumpurple', linewidth=2.5)
-        ax1.plot(df['Tempo_Simulato_s'], df['Pressione_Scalata'], 
-                 label='Pressione (kPa)', color='mediumseagreen', linewidth=2.5)
 
-        # Gestione Assi
+        # Plot Pressione e Umidità su ASSE DESTRO (ax2)
+        # Pressione in 'mediumseagreen', Umidità in 'mediumpurple'
+        ax2.plot(df['Tempo_Simulato_s'], df['Pressione'], 
+                 label='Pressione (kPa)', color='mediumseagreen', linewidth=2.5)
+        
+        ax2.plot(df['Tempo_Simulato_s'], df['Umidita'], 
+                 label='Umidità (%)', color='mediumpurple', linewidth=2.5)
+
+        # --- GESTIONE ASSI E LIMITI ---
         if not df.empty:
-            # X-Axis: dal tempo 0 all'ultimo step calcolato + buffer
             ax1.set_xlim(left=0, right=df['Tempo_Simulato_s'].max() + STEP_TEMPORALE_S)
             
-            # Y-Axis: range dinamico
-            vals = df[['Temperatura', 'Umidita', 'Pressione_Scalata']].values
-            y_min, y_max = np.nanmin(vals), np.nanmax(vals)
-            ax1.set_ylim(bottom=y_min - 5, top=y_max + 5)
+            # Limiti asse SX (Temperatura) - Dinamico con margine
+            t_min, t_max = df['Temperatura'].min(), df['Temperatura'].max()
+            ax1.set_ylim(bottom=t_min - 2, top=t_max + 2)
 
-        # Estetica
-        ax1.set_xlabel('Tempo (s) - [Step fisso 1s]')
-        ax1.set_ylabel('Grandezze Fisiche')
-        ax1.set_title('Monitoraggio BME280 (Asse temporale sintetico)')
-        ax1.grid(True, linestyle='--', alpha=0.5)
-        ax1.legend(loc='upper left', frameon=True)
+            # Limiti asse DX (Pressione/Umidità)
+            # Pressione ~100 kPa, Umidità 0-100.
+            # Impostiamo un range che copra bene entrambi, es: 0 - 110
+            # Oppure dinamico tra min(Pres, Hum) e max(Pres, Hum)
+            vals_dx = np.concatenate([df['Pressione'].values, df['Umidita'].values])
+            ax2.set_ylim(bottom=np.min(vals_dx) - 5, top=np.max(vals_dx) + 5)
+
+        # --- APPLICAZIONE STILE MEMORIZZATO ---
+        
+        # Titolo
+        ax1.set_title(r'Monitoraggio Live BME280', fontsize=16)
+
+        # Label Asse X
+        ax1.set_xlabel(r'Tempo $t$ [s]', fontsize=14, fontweight='bold', color='#2F4F4F')
+
+        # Forza ax1 a sinistra
+        ax1.yaxis.set_label_position("left")
+        ax1.yaxis.tick_left()
+        ax1.set_ylabel(r'Temperatura $T$ [°C]', fontsize=14, fontweight='bold', color='#2F4F4F')
+        ax1.tick_params(axis='y', labelcolor='skyblue')
+
+        # Forza ax2 a destra
+        ax2.yaxis.set_label_position("right")
+        ax2.yaxis.tick_right()
+        ax2.set_ylabel(r'Pressione [kPa] / Umidità [%]', fontsize=14, fontweight='bold', color='#2F4F4F')
+        ax2.tick_params(axis='y', labelcolor='mediumseagreen')
+
+        # Griglia Personalizzata (Memorizzata) su ax1
+        ax1.grid(True, which='major', linestyle='--', alpha=0.6, color='#778899') 
+        ax1.minorticks_on()
+        ax1.grid(True, which='minor', linestyle=':', alpha=0.3, color='#778899')
+
+        # Legenda Unificata (Raccogliamo le linee da entrambi gli assi)
+        lines_1, labels_1 = ax1.get_legend_handles_labels()
+        lines_2, labels_2 = ax2.get_legend_handles_labels()
+        
+        ax1.legend(lines_1 + lines_2, labels_1 + labels_2, 
+                   loc= 'best', frameon=True, shadow=True, fontsize=12, facecolor='#F0F8FF')
+        
+        fig.subplots_adjust(top=0.92, bottom=0.12, left=0.10, right=0.90)
 
     except Exception as e:
         print(f"Errore nel loop: {e}")
         pass
 
 ani = animation.FuncAnimation(fig, leggi_e_aggiorna, interval=INTERVALLO_AGGIORNAMENTO_MS)
+plt.tight_layout()
 plt.show()
