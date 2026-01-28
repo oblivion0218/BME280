@@ -5,12 +5,12 @@ import numpy as np
 import os
 
 # --- Configurazione ---
-NOME_FILE_LOG = 'dati_bme_live.csv'
+NOME_FILE_LOG = 'dati_bme_live.csv'     # Legge il file di output da bme280_logger.py
 INTERVALLO_AGGIORNAMENTO_MS = 1000
 STEP_TEMPORALE_S = 1.0 
 # ---------------------
 
-# Setup della figura con dimensioni memorizzate
+# Setup della figura 
 fig, ax1 = plt.subplots(figsize=(10, 6))
 ax2 = ax1.twinx()  # Istanzio l'asse gemello una volta sola
 
@@ -22,7 +22,7 @@ def leggi_e_aggiorna(i):
         # Leggiamo il CSV
         df = pd.read_csv(NOME_FILE_LOG, skiprows=1, header=None, skipinitialspace=True)
         
-        if df.empty or df.shape[1] < 4:
+        if df.empty or df.shape[1] < 4: # controllo sulle dimensioni
             return
 
         df.columns = ['Timestamp_Raw', 'Temp_K', 'Hum_Pct', 'Pres_kPa']
@@ -33,7 +33,7 @@ def leggi_e_aggiorna(i):
         df['Umidita'] = df['Hum_Pct'].astype(str).str.extract(regex_num).astype(float)
         df['Pressione'] = df['Pres_kPa'].astype(str).str.extract(regex_num).astype(float)
         
-        df.dropna(subset=['Temperatura', 'Umidita', 'Pressione'], inplace=True)
+        df.dropna(subset=['Temperatura', 'Umidita', 'Pressione'], inplace=True) # elimina dati corrotti
         
         # Asse temporale sintetico
         df['Tempo_Simulato_s'] = np.arange(len(df)) * STEP_TEMPORALE_S
@@ -44,12 +44,10 @@ def leggi_e_aggiorna(i):
         ax2.clear()
 
         # Plot Temperatura su ASSE SINISTRO (ax1)
-        # Uso 'skyblue' come da tuo script precedente, mantenendo lo stile
         ax1.plot(df['Tempo_Simulato_s'], df['Temperatura'], 
                  label='Temperatura (°C)', color='skyblue', linewidth=2.5)
 
         # Plot Pressione e Umidità su ASSE DESTRO (ax2)
-        # Pressione in 'mediumseagreen', Umidità in 'mediumpurple'
         ax2.plot(df['Tempo_Simulato_s'], df['Pressione'], 
                  label='Pressione (kPa)', color='mediumseagreen', linewidth=2.5)
         
@@ -71,7 +69,6 @@ def leggi_e_aggiorna(i):
             vals_dx = np.concatenate([df['Pressione'].values, df['Umidita'].values])
             ax2.set_ylim(bottom=np.min(vals_dx) - 5, top=np.max(vals_dx) + 5)
 
-        # --- APPLICAZIONE STILE MEMORIZZATO ---
         
         # Titolo
         ax1.set_title(r'Monitoraggio Live BME280', fontsize=16)

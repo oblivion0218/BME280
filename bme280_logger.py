@@ -3,13 +3,13 @@ import time
 import os
 
 # --- Configurazione ---
-PORTA_SERIALE = '/dev/ttyACM0'
+PORTA_SERIALE = '/dev/ttyACM0'      # Necessari per la comunicazione seriale diretta
 BAUD_RATE = 9600
-NOME_FILE_LOG = 'dati_bme_live.csv'
+NOME_FILE_LOG = 'dati_bme_live.csv'     # grafico_dinamico.py legge questo tipo di file
 # ---------------------
 
 def inizializza_file_csv(filename):
-    """Scrive l'intestazione solo se il file non esiste o è vuoto."""
+    # Scrive l'intestazione solo se il file non esiste o è vuoto
     # L'intestazione deve corrispondere all'output dell'Arduino (TIMESTAMP, T, H, P)
     intestazione = "Tempo relativo (ms) , Temperatura (C), Umidita (%), Pressione (hPa)\n"
     
@@ -31,7 +31,7 @@ try:
     print(f"Connesso a {PORTA_SERIALE} a {BAUD_RATE} baud. Scrittura su {NOME_FILE_LOG}")
     print("Inizio acquisizione dati. Premi Ctrl+C per interrompere.")
 
-    # 2. Apri il file una sola volta in modalità append ('a')
+    # 2. Apriamo il file una sola volta in modalità append ('a')
     with open(NOME_FILE_LOG, 'a') as file_log:
         
         while True:
@@ -47,8 +47,9 @@ try:
                         # La funzione println() di Arduino assicura che il dato finisca con '\n' (nuova riga).
                         file_log.write(linea + '\n') 
                         file_log.flush() # Forza la scrittura sul disco immediatamente (meno efficiente ma più sicuro in caso di crash)
+                        # Purtroppo crasha spesso la comunicazione, credo sia un problema di Ubuntu, quindi sconsiglio la modifica
 
-                        # 4. Analisi e Output a Console (Opzionale)
+                        # 4. Analisi e Output a Console
                         try:
                             # Assumendo il formato: TIMESTAMP, Temp, Umid, Pres
                             parts = linea.split(',')
