@@ -39,7 +39,7 @@
 #pad(x: 2em)[ // Rientro per evidenziare l'abstract
   Il presente elaborato si pone come obiettivo la verifica sperimentale della seconda legge di Gay-Lussac e la determinazione della costante universale dei gas ideali ($R$), valutandone la compatibilità con il valore nominale. 
   
-  L'intero apparato sperimentale è stato realizzato mediante strumentazione low-cost, nello specifico, il sensore BME280 e il microcontrollore Arduino UNO. Per tutta l'attività si è posta  particolare attenzione all'identificazione e alla riduzione delle incertezze sistematiche e casuali.
+  L'intero apparato sperimentale è stato realizzato mediante strumentazione low-cost, nello specifico, il sensore BME280 e il microcontrollore Arduino UNO. Il resto della strumentazione utilizzata è comunemente reperibile in ambiente domestico.
   
   L'esperienza analizza l'evoluzione isocora di una massa d'aria confinata ermeticamente, sottoposta a un ciclo termico quasi-statico nell'intervallo compreso tra -15 °C e 80 °C. I parametri di pressione, temperatura e umidità relativa sono stati acquisiti in tempo reale e successivamente elaborati in ambiente Python per l'estrapolazione delle costanti fisiche di interesse.
   
@@ -85,22 +85,10 @@ Il sistema di acquisizione dati è basato su un microcontrollore Arduino, che fu
 
 - *Microcontrollore:* Scheda *Arduino UNO*, impiegata per l'interfacciamento con il sensore e la trasmissione dei dati via seriale verso il PC. Il campionamento è stato impostato a una frequenza di $1 "Hz"$ ($1 "campione/s"$), valore ottimale per seguire l'inerzia termica del sistema senza generare ridondanza informativa.
 
-- La configurazione include inoltre la cablatura necessaria e la *breadboard* per i collegamenti elettrici, come illustrato in @fig-sensibilita.
-
-== 1.2 Codice di Acquisizione
-Il software di gestione è stato sviluppato in ambiente Arduino IDE, avvalendosi di librerie specifiche per il protocollo di comunicazione I2C e la gestione dei registri del sensore. L'archiviazione dei dati in formato CSV e la successiva analisi richiedono l'ausilio di un computer collegato tramite interfaccia USB-seriale.
+- La configurazione finale include inoltre la cablatura necessaria e l'uso di un computer per l'acquisizione e analisi dei dati.
 
 
-
-Di seguito è riportato il listato del codice sorgente implementato:
-
-#let imm_path = "immagini/arduino code.png"
-#figure(
-  image(imm_path, width: 15cm),
-  caption: [Codice sorgente Arduino per l'acquisizione dei dati ambientali.],
-) <fig-code> 
-
-== 1.3 Camera di Misura e Sigillatura
+== 1.2 Camera di Misura e Sigillatura
 Come camera isocora è stato impiegato un contenitore in vetro borosilicato, dotato di un tappo metallico a vite per garantire la necessaria rigidità strutturale.
 
 - *Posizionamento del Sensore:* Il tappo è stato forato in corrispondenza del centro geometrico per minimizzare l'influenza termica delle pareti del contenitore sul sensore. Attraverso tale foro sono stati fatti passare i conduttori di connessione.
@@ -115,7 +103,7 @@ Come camera isocora è stato impiegato un contenitore in vetro borosilicato, dot
 
 - *Tenuta del filetto:* Per scongiurare fughe di gas attraverso la filettatura del tappo, è stato applicato del nastro in PTFE (Teflon) prima della chiusura definitiva. Esternamente, il giunto è stato ulteriormente messo in sicurezza con nastro isolante ad alta tenuta.
 
-== 1.4 Bagni Termici
+== 1.3 Bagni Termici
 Per indurre le variazioni di temperatura necessarie alla verifica delle leggi dei gas, sono stati predisposti due bagni termici:
 
 1. *Bagno Freddo:* Una miscela eutettica di ghiaccio tritato e cloruro di sodio (NaCl), sfruttata per raggiungere una temperatura minima di circa $-15 "°C"$ grazie all'abbassamento crioscopico. #footnote[Sebbene esistano sali in grado di raggiungere temperature inferiori (come $C a C l_2$ o $M g C l_2$), si è optato per il comune sale da cucina per ragioni di sicurezza operativa e facile reperibilità didattica.]
@@ -147,7 +135,7 @@ Tale legge implica una dipendenza lineare diretta tra la pressione e la temperat
 === Procedura di Analisi Dati
 Per verificare sperimentalmente la validità del modello e ricavare le costanti fisiche, si è proceduto secondo il seguente protocollo:
 
-1. *Normalizzazione dimensionale:* Le temperature misurate in gradi Celsius ($t_C$) vengono convertite in Kelvin ($T_K$) dal firmware di acquisizione:
+1. *Normalizzazione dimensionale:* Le temperature misurate in gradi Celsius ($t_C$) dal sensore BME280, vengono convertite in Kelvin ($T_K$) dal firmware di acquisizione:
    $ T_K = t_C + 273.15 $
    Simultaneamente, la pressione acquisita in kPa viene convertita in unità SI (Pa) mediante un fattore di scala $10^3$.
 
@@ -155,10 +143,11 @@ Per verificare sperimentalmente la validità del modello e ricavare le costanti 
    $ P = m dot T_K + q $
    Per un gas ideale, l'ordinata all'origine $q$ deve risultare nulla (o compatibile con lo zero) entro le incertezze sperimentali.
 
-3. *Determinazione della Costante $R$:* Nota la quantità di sostanza $n$, il valore sperimentale della costante dei gas ideali si ottiene manipolando l'equazione di stato: $ R = (P V) / (n T) $.
+3. *Determinazione della Costante $R$:* Nota la quantità di sostanza $n$ (vedi capitolo 2.4), il valore sperimentale della costante dei gas ideali si ottiene manipolando l'equazione di stato: $ R = (P V) / (n T) $.
+  Tutte le grandezze risultano note, ed è quindi possibile calcolarla puntualmente.
 
 4. *Estrapolazione dello Zero Assoluto ($T_0$):*
-   Per determinare lo zero assoluto, si esegue una regressione lineare utilizzando la temperatura in gradi Celsius ($t_C$). L'equazione della retta assume la forma:
+   Per determinare lo zero assoluto, si esegue una regressione lineare utilizzando la temperatura in gradi Celsius ($t_C$) in confronto con la pressione in Pascal. L'equazione della retta assume la forma:
    $ P = a dot t_C + b $
    Imponendo la condizione di pressione nulla ($P=0$), si estrapola la temperatura di zero assoluto $T_0$:
    $ T_0 = - b / a $
@@ -179,11 +168,11 @@ $ MM_"aria" = sum (chi_i dot MM_i) approx 28.96 "g/mol" $
 Tale parametro è essenziale per convertire la massa d'aria confinata nella quantità di sostanza $n$.
 
 == 2.4 Correzioni per l'Umidità Atmosferica
-Data la presenza intrinseca di vapore acqueo nell'aria ambiente, è stata implementata una correzione basata sui dati di umidità relativa forniti dal sensore.
+Data la presenza intrinseca di vapore acqueo nell'aria ambientale, è stata implementata una correzione basata sui dati di umidità relativa forniti dal sensore.
 
 La procedura di correzione segue un approccio semi-empirico:
 
-1. *Pressione di Saturazione ($P_"sat"$):* Determinata mediante la relazione di *Magnus-Tetens*: Questa relazione empirica descrive molto bene il comportamenteo della pressione di saturazione nell'intervallo studiato.   $ P_"sat"(t_C) = 611.2 dot exp((17.67 dot t_C) / (t_C + 243.5)) space [P a] $
+1. *Pressione di Saturazione ($P_"sat"$):* Determinata mediante la relazione di *Magnus-Tetens*: Questa relazione empirica descrive molto bene il comportamenteo della pressione di saturazione nell'intervallo studiato.   $ P_"sat" = 611.2 dot exp((17.67 dot t_C) / (t_C + 243.5)) space [P a] $
 
 2. *Pressione Parziale del Vapore ($P_v$):* Ricavata dall'Umidità Relativa ($U R$):
    $ P_v = (U R) / 100 dot P_"sat" $
@@ -198,7 +187,7 @@ La procedura di correzione segue un approccio semi-empirico:
    $ n = (rho V) / MM_"mix" $
    Il calcolo della densità ($rho$) è stato gestito mediante tabelle standard NIST per l'aria umida, applicando un algoritmo di interpolazione bilineare per evitare dipendenze ricorsive tra le variabili.
 
-5. *Sistemi di Essiccazione:* Per minimizzare l'incertezza legata all'umidità, si è proceduto all'essiccazione dell'aria mediante *silica gel*, riducendo l'UR a valori prossimi al $10-15\%$. In configurazioni avanzate, il contenitore è stato trattato in forno ventilato a $120 "°C"$ per indurre l'evaporazione totale del vapore acqueo residuo; la successiva sigillatura a caldo ha permesso di ottenere un'umidità relativa prossima allo $0\%$ entro i limiti di sensibilità strumentale.
+5. *Sistemi di Essiccazione:* Per minimizzare l'incertezza legata all'umidità, si è proceduto all'essiccazione dell'aria mediante *silica gel*, riducendo l'UR a valori prossimi al $10-15\%$. In configurazioni avanzate, il contenitore è stato trattato in forno ventilato a $120 "°C"$ per indurre l'evaporazione totale del vapore acqueo residuo; la successiva sigillatura a caldo (unita alla presenza della silica) ha permesso di ottenere un'umidità relativa prossima allo $0\%$ entro i limiti di sensibilità strumentale.
    
    La silica gel utilizzata include un *indicatore cromotropico* (viraggio dal rosa al verde in caso di saturazione), permettendo il monitoraggio visivo dell'efficacia del disidratante, rigenerabile tramite trattamento termico.
 = 3. Metodologia
@@ -233,7 +222,7 @@ Sulla base delle specifiche dimensionali del costruttore e delle sezioni dei con
   caption: [Specifiche dimensionali del sensore BME280.],
 ) <fig-sensore-dim> 
 
-Al contrario, l'inserimento del disidratante (silica gel) rappresenta un contributo volumetrico non trascurabile. Considerando una densità apparente di $0.7 "g/ml"$ e una massa di $10 "g"$ per unità, la riduzione del volume utile è di circa $14 "ml"$.
+Al contrario, l'inserimento del disidratante (silica gel) rappresenta un contributo volumetrico non trascurabile. Considerando una densità tabulata di $0.7 "g/ml"$ e una massa di $10 "g"$ per unità, la riduzione del volume utile è di circa $14 "ml"$, valore tenuto in considerazione nella considerazione del volume.
 
 == 3.2 Protocollo di Acquisizione
 La procedura sperimentale prevede l'immersione della camera in una vasca termostatica. Inizialmente, il sistema viene raffreddato criogenicamente mediante una miscela eutettica di ghiaccio tritato e cloruro di sodio. Per contrastare la spinta idrostatica (di Archimede) risultante dalla fusione della miscela, è necessario applicare un sovraccarico sulla sommità del contenitore per garantirne la stabilità meccanica e l'immersione costante.
@@ -257,7 +246,7 @@ In questa sezione viene fornita una panoramica delle metodologie computazionali 
 Tutti gli algoritmi sviluppati, unitamente ai dataset raccolti, sono stati sistematizzati e resi disponibili in un repository GitHub dedicato, al fine di garantire la riproducibilità dell'esperienza: #link("https://github.com/oblivion0218/BME280").
 
 == 4.1 Gestione dei Dati Iniziali
-Il firmware caricato sul microcontrollore (descritto nella sezione 1.2) trasmette i segnali digitali dei sensori all'unità di calcolo tramite interfaccia seriale. Per l'archiviazione di tali flussi è stato implementato uno script Python, `bme280_logger.py`, che formatta i dati in ingresso e li salva in file in formato `.csv`.
+Il firmware per l'acquisizione dei dati (disponibile in GitHub come: `Arduino_code.txt`) viene caricato sul microcontrollore Arduino UNO e ha lo scopo di trasmettere i segnali digitali dei sensori all'unità di calcolo tramite interfaccia seriale. Per l'archiviazione di tali flussi è stato implementato uno script Python, `bme280_logger.py`, che formatta i dati in ingresso e li salva in file in formato `.csv`.
 
 #let imm_path = "immagini/Andamento.png"
 #figure(
@@ -272,22 +261,24 @@ Contemporaneamente, è stato sviluppato lo script `grafico_dinamico.py` per la v
 == 4.2 Determinazione della Costante Universale $R$
 L'elaborazione successiva è affidata a un Jupyter Notebook (`Analisi.ipynb`), deputato al calcolo della quantità di sostanza e dei parametri termodinamici derivati.
 
-Il software integra i dati sperimentali con le tabelle NIST relative alla densità dell'aria umida. Mediante un algoritmo di *interpolazione bilineare*, il codice determina il valore di densità ottimale in funzione della temperatura e dell'umidità misurate, scalandolo successivamente in base alla pressione istantanea osservata.
+Il software integra i dati sperimentali con le tabelle NIST relative alla densità dell'aria umida. Mediante un algoritmo di interpolazione bilineare, il codice determina il valore di densità ottimale in funzione della temperatura e dell'umidità misurate, scalandolo successivamente in base alla pressione istantanea osservata.
 
-Determinata la quantità di sostanza $n$, il valore della costante $R$ viene calcolato puntualmente invertendo l'equazione di stato dei gas ideali. L'analisi prosegue con la generazione di un istogramma della distribuzione di frequenza e di un plot dell'andamento temporale di $R$. Infine, viene eseguito un test di compatibilità tra il valore medio pesato ottenuto e il valore nominale CODATA, esprimendo la divergenza in termini di deviazioni standard ($sigma$).
+Determinata  quindi la quantità di sostanza $n$ facendo uso delle precedenti relazioni. Il valore della costante $R$ viene calcolato puntualmente invertendo l'equazione di stato dei gas ideali. L'analisi prosegue con la generazione di un istogramma della distribuzione di frequenza e di un plot dell'andamento temporale di $R$. Infine, viene eseguito un test di compatibilità tra il valore medio pesato ottenuto e il valore nominale CODATA, esprimendo la divergenza in termini di deviazioni standard ($sigma$).
 
 #let imm_path = "immagini/R.png"
 #figure(
-  image(imm_path, width: 10cm),
+  image(imm_path, width: 15cm),
   caption: [Distribuzione statistica dei valori sperimentali della costante R.],
 ) <fig-R-dist> 
 
 == 4.3 Verifica della Legge di Gay-Lussac e Stima di $T_0$
 Il core dell'analisi riguarda la correlazione tra pressione e temperatura per la verifica della seconda legge di Gay-Lussac.
 
+Dalla regressione lineare dei dati di pressione e temperatura (in °C), viene effettuato un confronto tra il valore teorico dello zero termico ($-273.15 "°C"$) e il valore ottenuto dall'estrapolazione a pressione nulla ($P = 0 "Pa"$), valutandone la consistenza statistica.
 
+È stato inoltre eseguito un fit lineare nel piano $P-T_K$ per quantificare lo scostamento dall'idealità del gas, espresso dal parametro di intercetta $q != 0$.
 
-Dalla regressione lineare dei dati viene effettuato un confronto tra il valore teorico dello zero termico ($-273.15 "°C"$) e il valore ottenuto dall'estrapolazione a pressione nulla ($P = 0 "Pa"$), valutandone la consistenza statistica.
+Contrariamente alla determinazione di $R$, questa fase dell'esperienza ha evidenziato una discrepanza sistematica tra i risultati sperimentali e le previsioni del modello. Come visibile in @fig-PT, i dati mostrano una marcata non sovrapponibilità tra le fasi di riscaldamento e raffreddamento, fenomeno riconducibile a un'isteresi del sistema.
 
 #let imm_path = "immagini/P-T.png"
 #figure(
@@ -295,9 +286,6 @@ Dalla regressione lineare dei dati viene effettuato un confronto tra il valore t
   caption: [Diagramma P-T con regressione lineare forzata sui dati sperimentali.],
 ) <fig-PT> 
 
-È stato inoltre eseguito un fit lineare nel piano $P-T_K$ per quantificare lo scostamento dall'idealità del gas, espresso dal parametro di intercetta $q != 0$.
-
-Contrariamente alla determinazione di $R$, questa fase dell'esperienza ha evidenziato una discrepanza sistematica tra i risultati sperimentali e le previsioni del modello. Come illustrato in @fig-PT, i dati mostrano una marcata non sovrapponibilità tra le fasi di riscaldamento e raffreddamento, fenomeno riconducibile a un'isteresi del sistema.
 
 A seguito di un'analisi approfondita, tale comportamento è stato attribuito a fenomeni di "respirazione" del contenitore, ovvero a una perdita di ermeticità della camera isocora. Nonostante le contromisure adottate (applicazione di PTFE, isolamento delle connessioni e ottimizzazione del gradiente termico), la criticità principale permane nella sigillatura del tappo mediante colla a caldo. Quest'ultima, raggiungendo temperature prossime al punto di rammollimento, subisce deformazioni plastiche che permettono lo sfiato del gas, creando canali di fuga che persistono anche durante la fase di raffreddamento, alterando irreversibilmente la massa d'aria confinata.
 
@@ -307,13 +295,15 @@ L'analisi quantitativa dei dati raccolti richiede una rigorosa gestione delle in
 
 In questo esperimento, le sorgenti di errore sono state classificate in due categorie principali: strumentali e di metodo.
 
-Per le grandezze dirette quali Pressione ($P$), Temperatura ($T$) e Umidità Relativa ($U R$), abbiamo adottato le tolleranze fornite dal datasheet del sensore BME280 (come riportato in @fig-sensibilita). Il volume del gas, invece, è affetto da un errore statistico legato alla misurazione della capacità del contenitore, mentre il volume sottratto dai componenti interni è stato trattato come esatto in quanto geometricamente determinato.
+Per le grandezze dirette quali Pressione ($P$), Temperatura ($T$) e Umidità Relativa ($U R$), si è adottata le tolleranze fornite dal datasheet del sensore BME280 (come riportato in @fig-sensibilita). Il volume del gas, invece, è affetto da un errore statistico legato alla misurazione della capacità del contenitore, mentre il volume sottratto dai componenti interni è stato trattato come esatto in quanto geometricamente determinato.
 
 Un aspetto cruciale di questa analisi è stato il metodo di propagazione degli errori per la costante $R$ e per le moli $n$. A causa della complessità delle formule e della correlazione tra le variabili (ad esempio, la densità dell'aria dipende sia da $P$ che da $T$), non è stato utilizzato il classico metodo differenziale analitico. Si è optato invece per un approccio computazionale di perturbazione numerica: l'algoritmo calcola come varia il risultato finale "perturbando" ogni variabile di ingresso del suo valore di incertezza. Le variazioni risultanti sono state poi sommate in quadratura. Questo approccio ha permesso di ottenere una stima dell'incertezza molto più robusta e aderente alla realtà fisica del sistema, evitando sovrastime o sottostime tipiche delle semplificazioni algebriche.
 
 Tuttavia, l'errore dominante nell'esperimento non è di natura statistica, ma sistematica. Come evidenziato dai grafici $P-T$, l'apparato soffre di un fenomeno di isteresi: le curve di riscaldamento e raffreddamento non si sovrappongono perfettamente. Questo indica che la trasformazione non è perfettamente isocora (a volume costante). La causa è stata individuata nella "respirazione" del contenitore: le sigillature, sottoposte a stress termico, tendono a perdere ermeticità ad alte temperature, alterando la massa di gas all'interno del vaso e compromettendo parzialmente la verifica della legge di Gay-Lussac.
 
 == 5.1 Sviluppi Futuri e Migliorie
+
+=== Possibili migliorie dell'esperienza
 
 L'esperienza, pur fornendo risultati qualitativamente coerenti con la teoria, presenta margini di miglioramento sia dal punto di vista tecnico che didattico.
 
@@ -323,16 +313,33 @@ Dal punto di vista tecnico, la priorità assoluta è garantire l'ermeticità del
 
 Risolvendo il problema della tenuta, l'ellisse di isteresi collasserebbe sulla retta teorica, permettendo una stima dello zero assoluto molto più precisa.
 
+=== Commento didattico
+
 Dal punto di vista didattico, una criticità emersa è la durata dell'esperimento. Una raccolta dati accurata richiede variazioni di temperatura lente ("quasi-statiche"), il che può tradursi in tempi morti in cui l'attenzione degli studenti rischia di calare. Per mitigare questo rischio, si propongono due strategie:
 
 - Visualizzazione in tempo reale con l'uso del software 'grafico_dinamico.py' . Vedere il grafico costruirsi "live" trasforma l'attesa in osservazione attiva.
 - Integrazione teorica: Il docente può sfruttare il tempo di riscaldamento/raffreddamento per spiegare le leggi dei gas o discutere la natura microscopica della pressione, trasformando l'attesa in un momento di lezione frontale applicata.
 
-Infine, una volta stabilizzato l'apparato, l'esperienza è facilmente estendibile. Utilizzando barattoli di diverse dimensioni (e quindi volumi diversi) ma mantenendo la stessa massa d'aria e temperatura, sarebbe possibile verificare sperimentalmente anche la Legge di Boyle ($P prop 1/V$), offrendo agli studenti un quadro sperimentale completo dell'equazione di stato dei gas ideali.
+=== Estensione alla legge di Boyle
+
+Una volta che l’apparato sperimentale è stato stabilizzato, l’esperienza può essere facilmente estesa utilizzando barattoli di volume diverso per gruppi differenti di studenti. In questo modo ogni gruppo può svolgere l’esperimento in modo autonomo.
+
+I risultati ottenuti possono poi essere confrontati e unificati per verificare sperimentalmente la legge di Boyle. A temperatura costante, dall’interpolazione dei dati emergono valori di pressione diversi al variare del volume. Rappresentando tali risultati nel piano pressione–volume (P-V), si osserva la relazione di proporzionalità inversa $P prop 1/V$.
+
+L’esperienza fornisce così agli studenti una conferma sperimentale completa dell’equazione di stato dei gas ideali.
 
 #let imm_path = "immagini/generico.png"
-#figure(image(imm_path, width: auto),
-caption: [Schema concettuale per l'estensione dell'esperienza alla legge di Boyle],) <fig-gen>
+#let imm_path2 = "immagini/boyle.jpg"
+
+#figure(
+  grid(
+    columns: (1fr, 1fr), 
+    gutter: 10pt,        
+    image(imm_path, width: 90%),
+    image(imm_path2, width: 105%),
+  ),
+  caption: [Possibile estensione dell'esperienza per verificare la legge di Boyle],
+) <fig-barattolo>
 
 == 5.2 Conclusioni
  
@@ -359,7 +366,7 @@ In fisica, un gas si definisce "perfetto" quando accettiamo quattro grandi compr
 3. Tutti gli urti (tra molecole o contro le pareti) sono perfettamente elastici. Niente energia viene persa.
 4.  **Caos totale:** Il moto è puramente casuale (Moto Browniano).
 
-Se accettiamo queste ipotesi, otteniamo le famose leggi di Boyle e Gay-Lussac e l'equazione di stato dei gas perfetti:
+Se accettiamo queste ipotesi, otteniamo le famose leggi di Boyle e Gay-Lussac che convergono nell'equazione di stato dei gas perfetti:
 
 $ P V = n R T $
 
@@ -392,7 +399,7 @@ Non usate il righello! C'è un metodo più preciso usando una **bilancia da cuci
 *Indizio:* La densità dell'acqua è $1 "g/cm"^3$... vi viene in mente come fare?
 
 #quote(block: true)[
-  _Consiglio da scienziato:_ Fate più misurazioni e calcolate la media. Una sola misura è spesso preda dell'errore casuale!
+  _Consiglio:_ Fate più misurazioni e calcolate la media. Una sola misura è spesso preda dell'errore casuale!
 ]
 
 == 2. Preparazione dell'apparato
@@ -409,22 +416,23 @@ Ora dobbiamo rendere il barattolo ermetico. Vogliamo una trasformazione **Isocor
 #figure(image(imm_path, width: 8cm),
 caption: [Schema di collegamento del sensore BME280 ad Arduino],) <fig-collegamenti>
 
-4.  **Test:** fate una prova rapida di lettura dati (vedi sez. successiva).
-5.  **Sigillatura:** Se il sensore legge, sigillate il foro dei cavi con silicone o colla a caldo (senza lasciare buchi!) e chiudete il tappo. Un giro di nastro isolante esterno renderà tutto più sicuro.
+4.  **Test:** fate una prova rapida di lettura dati (vedi sez. successiva per il come). Il sensore è calibrato? risponde con dati sensati? Per rispondere a queste domande confrontati con gli altri gruppi, oppure puoi fare un confronto con le previsioni del meteo, queste forniscono pressione, umidità e temperatura dell'aria aperta nell'arco della giornata!
+
+5.  **Sigillatura:** Se l'output del sensore vi convince, sigillate il foro dei cavi con silicone o colla a caldo (senza lasciare buchi!), avvolgete il nastro di Teflon attorno al filetto e chiudete il tappo. Un giro di nastro isolante esterno renderà tutto più sicuro.
 
 == 3. Il Software
-Avete a disposizione 4 file. Non eseguiteli a caso!
-1.  **Arduino Sketch:** Il codice da caricare sulla scheda per "parlare" col sensore.
-2.  `bme280_logger.py`: Il suo ruolo è salvare i dati su un file '.csv'.
+Assieme a questa scheda avete a disposizione 4 file: Non eseguiteli a caso!
+1.  `Arduito_code.txt`: Questo è il codice da caricare sulla scheda Arduino per "parlare" col sensore.
+2.  `bme280_logger.py`: Il suo ruolo è salvare i dati in arrivo dalla porta USB su un file '.csv'.
 3.  `grafico_dinamico.py`:  Vi mostra i grafici in tempo reale per capire se sta succedendo qualcosa di strano.
 4.  `Analisi.ipynb`:  Lo userete alla fine per fare i calcoli.
 
-*Challenge:* I codici sono commentati. Apriteli; riuscite a capire dove vengono salvati i dati? Chiedete pure a un'AI di spiegarvi i passaggi oscuri.
+I codici sono commentati. Apriteli; riuscite a capire dove vengono salvati i dati e cosa sta succedendo? Chiedete pure a un'AI di spiegarvi i passaggi oscuri.
 
-== 4. Esperimento Dal gelo al caldo
+== 4. Esperimento: Dal gelo al caldo
 Tutto pronto? Si parte!
 
-1.  **Il Gelo (-10°C):** Preparate una miscela frigorifera (ghiaccio tritato + sale fino) in una bacinella. Grazie alla chimica, questa miscela scende ben sotto lo zero! Immergete il barattolo e aspettate che la temperatura letta dal sensore sia minima e stabile.
+1.  **Il Gelo (-15°C):** Preparate una miscela frigorifera (ghiaccio tritato + sale fino) in una bacinella. Grazie alla chimica, questa miscela scende ben sotto lo zero! Immergete il barattolo e aspettate che la temperatura letta dal sensore sia minima e stabile.
 
 2.  **Il Fuoco (Quasi-statico):** Accendete una fiamma *bassa* sotto la bacinella in cui c'è il barattolo, portando il ghiaccio a scioglersi e poi scaldarsi.
     * *Attenzione:* Il processo deve essere **Quasi-statico**, cioè moooolto lento.*
@@ -439,8 +447,8 @@ Avviate il notebook `Analisi.ipynb`. Il primo passo fondamentale è inserire cor
 Il software eseguirà un'analisi statistica e grafica divisa in due fasi:
 
 1.  **Stima della Costante $R$:**
-    Il codice inverte l'equazione di stato $R = (P V) / (n T)$ calcolando $R$ per ogni singolo istante di campionamento.
-    -   **Istogramma:** Vi permetterà di vedere la distribuzione dei valori calcolati (si distribuiscono secondo una gaussiana?).
+    Il codice inverte l'equazione di stato dei gas perfetti calcolando $R$ per ogni singolo istante di campionamento.
+    -   **Istogramma:** Vi permetterà di vedere la distribuzione dei valori calcolati (come si distribuiscono? perchè?).
     -   **Drift temporale:** Il grafico $R$ vs $t$ è fondamentale per la diagnostica. Se $R$ non è costante ma sale o scende durante l'esperimento, significa che abbiamo una perdita di gas o che il sistema non era in equilibrio termico.
 
 2.  **Regressione Lineare ($P$ vs $T$):**
@@ -456,7 +464,7 @@ Rispondete a queste domande nella vostra relazione finale per dimostrare la comp
 2.  Confrontate il vostro grafico $P-T$ con quello di un gruppo che ha usato un barattolo di volume $V$ diverso.
     Dall'equazione $P = (n R / V) dot T$, notate che il coefficiente angolare (la pendenza della retta) è $m = (n R) / V$.
     -   Osservate come cambia la pendenza al variare del volume: chi ha il volume maggiore ha una retta più ripida o meno ripida?
-    -   Guardate poi il valore della pressione tra volumi ma alla stessa temperatura, provate a costruire un grafico P-V tutti assieme. Riuscite a verificare la legge di Boyle?  .
+    -   Guardate poi il valore della pressione tra gruppi con volumi viversi ma alla stessa temperatura, provate a costruire un grafico P-V tutti assieme. Riuscite a verificare la legge di Boyle?  .
 
 3.  **Analisi degli Errori:**
     Quale variabile incide maggiormente sull'errore finale di $R$? È l'incertezza sulla misura del Volume o quella sulla temperatura del sensore? Giustificate la risposta.

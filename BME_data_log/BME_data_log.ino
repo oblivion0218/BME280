@@ -1,8 +1,8 @@
-#include <Wire.h>
-#include <Adafruit_Sensor.h>
-#include <Adafruit_BME280.h>
+#include <Wire.h>                   // Libreria per la gestione del protocollo I2C
+#include <Adafruit_Sensor.h>        // Classe base per i sensori Adafruit (standardizzazione)
+#include <Adafruit_BME280.h>        // Libreria specifica per i registri del BME280
 
-Adafruit_BME280 bme; // I2C
+Adafruit_BME280 bme;         // Istanza dell'oggetto sensore
 
 void setup() {
   Serial.begin(9600);
@@ -10,29 +10,38 @@ void setup() {
 
   // Rimuoviamo ogni filtro software o oversampling per vedere la risposta grezza
   bme.setSampling(Adafruit_BME280::MODE_NORMAL,
-                  Adafruit_BME280::SAMPLING_X2, // Temperatura: campionamento X2
-                  Adafruit_BME280::SAMPLING_X16, // Pressione: campionamento X16
-                  Adafruit_BME280::SAMPLING_X1, // Umidità: campionamento singolo
-                  Adafruit_BME280::FILTER_OFF,  //  FILTRO IIR SPENTO (Nessun ritardo)
-                  Adafruit_BME280::STANDBY_MS_500); // Standby minimo tra letture
+                  Adafruit_BME280::SAMPLING_X2,      // Temperatura: campionamento X2
+                  Adafruit_BME280::SAMPLING_X16,     // Pressione: campionamento X16
+                  Adafruit_BME280::SAMPLING_X1,      // Umidità: campionamento singolo
+                  Adafruit_BME280::FILTER_OFF,       //  FILTRO IIR SPENTO (Nessun ritardo)
+                  Adafruit_BME280::STANDBY_MS_500);  // Standby minimo tra letture
   
   Serial.println("Sensore configurato.");
 }
+// FILTER_OFF: Fondamentale. I sensori digitali spesso applicano una media mobile (filtro IIR) per "pulire" il dato. 
+// Disattivandolo, otteniamo la risposta grezza.
+
 
 void loop() {
-  // Lettura diretta
-  float temp = bme.readTemperature();
-  float pres = bme.readPressure();
-  float hum = bme.readHumidity();
+  // --- ACQUISIZIONE ---
+  // Leggiamo i valori dai registri interni del sensore e applichiamo le conversioni
+  float tempK = bme.readTemperature() + 273.15;  // Conversione Celsius -> Kelvin
+  float presKPa = bme.readPressure() / 1000.0F;  // Conversione Pascal -> kilopascal
+  float hum = bme.readHumidity();                // Umidità relativa in percentuale
+  
+  // Utilizziamo millis() per avere un riferimento temporale preciso
+  unsigned long timeStamp = millis(); 
 
-  Serial.print(millis());
-  Serial.print(" ,    ");
-  Serial.print(temp + 273.15, 2);
-  Serial.print(" K ,    ");
-  Serial.print(hum, 1);
-  Serial.print(" % ,    ");
-  Serial.print(pres / 1000.0F, 3); // Pascal -> kPa
-  Serial.println(" kPa");
+  // --- OUTPUT FORMATTATO ---
+  Serial.print("Tempo(ms): ");
+  Serial.print(timeStamp);
+  Serial.print(" , Temp(K): ");
+  Serial.print(tempK, 2);      // 2 cifre decimali
+  Serial.print(" , Umidita(%): ");
+  Serial.print(hum, 1);        // 1 cifra decimale (precisione tipica dell'igrometro)
+  Serial.print(" , Press(kPa): ");
+  Serial.println(presKPa, 3);  // 3 cifre decimali per apprezzare variazioni al Pascal
 
-  delay(1000);
+  // --- TIMING ---
+  delay(1000); // Frequenza di campionamento f = 1 Hz
 }
