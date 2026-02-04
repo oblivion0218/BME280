@@ -7,7 +7,7 @@ import os
 # --- Configurazione ---
 NOME_FILE_LOG = 'dati_bme_live.csv'     # Legge il file di output da bme280_logger.py
 INTERVALLO_AGGIORNAMENTO_MS = 1000
-STEP_TEMPORALE_S = 1.0 
+STEP_TEMPORALE_S = 1.0                  # Da modificare SOLO se il campionamento del sensore non avviene ogni secondo
 # ---------------------
 
 # Setup della figura 
@@ -64,11 +64,10 @@ def leggi_e_aggiorna(i):
 
             # Limiti asse DX (Pressione/Umidità)
             # Pressione ~100 kPa, Umidità 0-100.
-            # Impostiamo un range che copra bene entrambi, es: 0 - 110
-            # Oppure dinamico tra min(Pres, Hum) e max(Pres, Hum)
+            # Impostiamo un range che copra bene entrambi
+            # dinamico tra min(Pres, Hum) e max(Pres, Hum)
             vals_dx = np.concatenate([df['Pressione'].values, df['Umidita'].values])
             ax2.set_ylim(bottom=np.min(vals_dx) - 5, top=np.max(vals_dx) + 5)
-
         
         # Titolo
         ax1.set_title(r'Monitoraggio Live BME280', fontsize=16)
@@ -88,7 +87,7 @@ def leggi_e_aggiorna(i):
         ax2.set_ylabel(r'Pressione [kPa] / Umidità [%]', fontsize=14, fontweight='bold', color='#2F4F4F')
         ax2.tick_params(axis='y', labelcolor='mediumseagreen')
 
-        # Griglia Personalizzata (Memorizzata) su ax1
+        # Griglia su ax1
         ax1.grid(True, which='major', linestyle='--', alpha=0.6, color='#778899') 
         ax1.minorticks_on()
         ax1.grid(True, which='minor', linestyle=':', alpha=0.3, color='#778899')

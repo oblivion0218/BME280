@@ -11,7 +11,8 @@ NOME_FILE_LOG = 'dati_bme_live.csv'     # grafico_dinamico.py legge questo tipo 
 def inizializza_file_csv(filename):
     # Scrive l'intestazione solo se il file non esiste o è vuoto
     # L'intestazione deve corrispondere all'output dell'Arduino (TIMESTAMP, T, H, P)
-    intestazione = "Tempo relativo (ms) , Temperatura (C), Umidita (%), Pressione (hPa)\n"
+    # Dato che il collegamento è fragile, sconsiglio la modifica di questo blocco
+    intestazione = "Tempo relativo (ms) , Temperatura (C), Umidita (%), Pressione (kPa)\n"
     
     if not os.path.exists(filename) or os.stat(filename).st_size == 0:
         with open(filename, 'w') as f: # Usa 'w' (write) per creare e scrivere
@@ -40,7 +41,7 @@ try:
                 linea = ser.readline().decode('utf-8').strip()
                 
                 if linea:
-                    # Verifica che la linea non sia l'intestazione (se per caso l'Arduino la invia)
+                    # Verifica che la linea non sia l'intestazione (se per caso l'Arduino la ri-invia)
                     if not linea.upper().startswith("TIMESTAMP"): 
                         
                         # 3. Scrivi la riga (che è già formattata come CSV) nel file.
@@ -61,7 +62,7 @@ try:
                                 pressione = float(pres_str)
                                 
                                 # Stampa i dati formattati per monitoraggio
-                                print(f"[{int(timestamp):>10}] T: {temperatura:.2f}°C | H: {umidita:.1f}% | P: {pressione:.2f} hPa")
+                                print(f"[{int(timestamp):>10}] T: {temperatura:.1f}°C | H: {umidita:.1f}% | P: {pressione:.3f} kPa")
 
                         except ValueError:
                             # Gestisce linee incomplete o non numeriche
