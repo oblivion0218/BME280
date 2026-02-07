@@ -418,7 +418,7 @@ caption: [Schema di collegamento del sensore BME280 ad Arduino],) <fig-collegame
 
 4.  **Test:** fate una prova rapida di lettura dati (vedi sez. successiva per il come). Il sensore è calibrato? risponde con dati sensati? Per rispondere a queste domande confrontati con gli altri gruppi, oppure puoi fare un confronto con le previsioni del meteo, queste forniscono pressione, umidità e temperatura dell'aria aperta nell'arco della giornata!
 
-5.  **Sigillatura:** Se l'output del sensore vi convince, sigillate il foro dei cavi con silicone o colla a caldo (senza lasciare buchi!), avvolgete il nastro di Teflon attorno al filetto e chiudete il tappo. Un giro di nastro isolante esterno renderà tutto più sicuro.
+5.  **Sigillatura:** Se l'output del sensore vi convince, sigillate il foro dei cavi con silicone o colla a caldo (senza lasciare buchi!) chiudete poi il tappo con forza. Un giro di nastro isolante esterno renderà tutto più sicuro.
 
 == 3. Il Software
 Assieme a questa scheda avete a disposizione 4 file: Non eseguiteli a caso!
@@ -442,7 +442,7 @@ Tutto pronto? Si parte!
 4.  Spegnete tutto e lasciate raffreddare.
 
 = Analisi dei Dati
-Avviate il notebook `Analisi.ipynb`. Il primo passo fondamentale è inserire correttamente i parametri del vostro sistema: il **volume netto** misurato (sottraendo il volume della silica e del sensore) e la massa di aria (calcolata o stimata dal codice).
+Avviate il notebook `Analisi.ipynb`. Il primo passo fondamentale è inserire correttamente i parametri del vostro sistema: il **volume netto** misurato con il suo errore.
 
 Il software eseguirà un'analisi statistica e grafica divisa in due fasi:
 

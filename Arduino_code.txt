@@ -15,7 +15,6 @@ Determina la velocità con cui i bit vengono letti sulla linea SDA.
 
 */
 
-
 #include <Wire.h>                   // Libreria per la gestione del protocollo I2C
 #include <Adafruit_Sensor.h>        // Classe base per i sensori Adafruit (standardizzazione)
 #include <Adafruit_BME280.h>        // Libreria specifica per i registri del BME280
